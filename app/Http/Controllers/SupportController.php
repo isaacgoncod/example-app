@@ -2,17 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\DTO\CreateSupportDTO;
+use App\DTO\UpdateSupportDTO;
+use App\Http\Requests\StoreUpdateRequest;
 use App\Models\Support;
+use App\Services\SupportService;
 use Illuminate\Http\Request;
 
 class SupportController extends Controller
 {
+
+    public function __construct(protected SupportService $supportService)
+    {
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $supports = Support::all();
+        $supports = $this->supportService->getAll($request->filter);
 
         return view('admin.support.index', compact('supports'));
     }
@@ -22,15 +30,23 @@ class SupportController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.support.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreUpdateRequest $request, Support $support)
     {
-        //
+        // $data = $request->validated();
+        // $data['status'] = 'a';
+
+        // $support->create($data);
+
+        $this->supportService
+            ->new(CreateSupportDTO::makeFromRequest($request));
+
+        return redirect()->route('support.index');
     }
 
     /**
@@ -38,7 +54,12 @@ class SupportController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // $support = Support::find($id);
+        $support = $this->supportService->findOne($id);
+
+        if (!$support) return back();
+
+        return view('admin.support.show', compact('support'));
     }
 
     /**
@@ -46,15 +67,33 @@ class SupportController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        // $support = $support->where('id', $id)->first();
+        $support = $this->supportService->findOne($id);
+
+        if (!$support) return back();
+
+        return view('admin.support.edit', compact('support'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreUpdateRequest $request, string $id)
     {
-        //
+        // $support = Support::find($id);
+
+        // if (!$support) return back();
+
+        // $validated = $request->validated();
+
+        // $support->update($validated);
+
+        $support = $this->supportService
+            ->update(UpdateSupportDTO::makeFromRequest($request));
+
+        if (!$support) return back();
+
+        return redirect()->route('support.index');
     }
 
     /**
@@ -62,6 +101,13 @@ class SupportController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // $support = Support::find($id);
+        $support = $this->supportService->findOne($id);
+
+        if (!$support) return back();
+
+        $this->supportService->delete($id);
+
+        return redirect()->route('support.index');
     }
 }
