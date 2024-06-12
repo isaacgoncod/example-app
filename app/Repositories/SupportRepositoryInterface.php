@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use stdClass;
 use App\DTO\CreateSupportDTO;
 use App\DTO\UpdateSupportDTO;
 

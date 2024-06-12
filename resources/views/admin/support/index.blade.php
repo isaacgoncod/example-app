@@ -13,7 +13,7 @@
     </thead>
   </table>
   <tbody>
-    @if ($supports->count() == 0)
+    @if (empty($supports))
       <tr>
         <td colspan="3">Nenhum suporte encontrado</td>
       </tr>
@@ -22,19 +22,19 @@
     @foreach ($supports as $support)
       <tr>
         <td>
-          {{ $support->subject }}
+          {{ $support['subject'] }}
         </td>
         <td>
-          {{ $support->status }}
+          {{ $support['status'] }}
         </td>
         <td>
-          {{ $support->body }}
+          {{ $support['body'] }}
         </td>
         <td>
-            <a href="{{ route('support.show', $support->id) }}">Saiba mais</a>
+            <a href="{{ route('support.show', $support['id']) }}">Saiba mais</a>
         </td>
         <td>
-            <a href="{{ route('support.edit', $support->id) }}">Editar</a>
+            <a href="{{ route('support.edit', $support['id']) }}">Editar</a>
         </td>
       </tr>
     @endforeach
