@@ -2,11 +2,10 @@
 
 namespace App\Repositories;
 
-use stdClass;
+use App\DTO\Supports\CreateSupportDTO;
+use App\DTO\Supports\UpdateSupportDTO;
 use App\Models\Support;
-use App\DTO\CreateSupportDTO;
-use App\DTO\UpdateSupportDTO;
-use App\Repositories\SupportRepositoryInterface;
+use stdClass;
 
 class SupportEloquentORM implements SupportRepositoryInterface
 {
@@ -14,7 +13,23 @@ class SupportEloquentORM implements SupportRepositoryInterface
         protected Support $model
     ) {
     }
-    public function getAll(string $filter = null): array
+
+    public function getAllPaginated(int $page = 1, int $totalPerPage = 15, ?string $filter = null): PaginationInterface
+    {
+        $result = $this->model
+            ->where(function ($query) use ($filter) {
+                if ($filter) {
+                    $query->where('subject', $filter);
+                    $query->orWhere('body', 'like', "%{$filter}%");
+                }
+            })
+            ->paginate($totalPerPage, ['*'], 'page', $page);
+
+        // dd((new PaginationPresenter($result))->items());
+        return new PaginationPresenter($result);
+    }
+
+    public function getAll(?string $filter = null): array
     {
         return $this->model
             ->where(function ($query) use ($filter) {
@@ -26,14 +41,17 @@ class SupportEloquentORM implements SupportRepositoryInterface
             ->get()
             ->toArray();
     }
-    public function findOne(string $id): stdClass|null
+
+    public function findOne(string $id): ?stdClass
     {
         $support = $this->model->find($id);
-        if (!$support) {
+        if (! $support) {
             return null;
         }
+
         return (object) $support->toArray();
     }
+
     public function delete(string $id): void
     {
         $this->model->findOrFail($id)->delete();
@@ -48,9 +66,9 @@ class SupportEloquentORM implements SupportRepositoryInterface
         return (object) $support->toArray();
     }
 
-    public function update(UpdateSupportDTO $dto): stdClass|null
+    public function update(UpdateSupportDTO $dto): ?stdClass
     {
-        if (!$support = $this->model->find($dto->id)) {
+        if (! $support = $this->model->find($dto->id)) {
             return null;
         }
 

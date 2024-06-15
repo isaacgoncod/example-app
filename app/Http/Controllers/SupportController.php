@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\DTO\CreateSupportDTO;
-use App\DTO\UpdateSupportDTO;
+use App\DTO\Supports\CreateSupportDTO;
+use App\DTO\Supports\UpdateSupportDTO;
 use App\Http\Requests\StoreUpdateRequest;
 use App\Models\Support;
 use App\Services\SupportService;
@@ -11,18 +11,24 @@ use Illuminate\Http\Request;
 
 class SupportController extends Controller
 {
-
     public function __construct(protected SupportService $supportService)
     {
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $supports = $this->supportService->getAll($request->filter);
+        $supports = $this->supportService->getAllPaginated(
+            page: $request->get('page', 1),
+            totalPerPage: $request->get('per_page', 15),
+            filter: $request->filter
+        );
 
-        return view('admin.support.index', compact('supports'));
+        $filters = ['filter' => $request->get('filter', '')];
+
+        return view('admin.support.index', compact('supports', 'filters'));
     }
 
     /**
@@ -57,7 +63,9 @@ class SupportController extends Controller
         // $support = Support::find($id);
         $support = $this->supportService->findOne($id);
 
-        if (!$support) return back();
+        if (! $support) {
+            return back();
+        }
 
         return view('admin.support.show', compact('support'));
     }
@@ -70,7 +78,9 @@ class SupportController extends Controller
         // $support = $support->where('id', $id)->first();
         $support = $this->supportService->findOne($id);
 
-        if (!$support) return back();
+        if (! $support) {
+            return back();
+        }
 
         return view('admin.support.edit', compact('support'));
     }
@@ -91,7 +101,9 @@ class SupportController extends Controller
         $support = $this->supportService
             ->update(UpdateSupportDTO::makeFromRequest($request));
 
-        if (!$support) return back();
+        if (! $support) {
+            return back();
+        }
 
         return redirect()->route('support.index');
     }
@@ -104,7 +116,9 @@ class SupportController extends Controller
         // $support = Support::find($id);
         $support = $this->supportService->findOne($id);
 
-        if (!$support) return back();
+        if (! $support) {
+            return back();
+        }
 
         $this->supportService->delete($id);
 
